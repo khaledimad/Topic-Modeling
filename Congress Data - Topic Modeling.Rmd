@@ -1,0 +1,224 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+set.seed(1234)
+```
+
+Question 1
+```{r}
+#install.packages("topicmodels")
+```
+
+
+```{r}
+# load libraries
+library(textir) # to get the data
+library(maptpx) # for the topics function
+library(topicmodels)
+```
+
+```{r}
+# load the congressional data
+load("congress.RData")
+```
+
+```{r}
+# Prepare the data for analysis
+# Fitting k-means by first scaling while standardizing on frequency.
+fs <- scale(as.matrix(congress109Counts / rowSums(congress109Counts)))
+```
+
+
+```{r}
+# Deducing k-means for k = 5.
+kmfs5 <- kmeans(fs,5)
+
+# this output gives 5 groups and top 10 words in them
+print(apply(kmfs5$centers,1,function(c) colnames(fs)[order(-c)[1:10]]))
+```
+
+```{r}
+# the code below takes the dataset "fs" and we want 10 means. So "kmeans" will do this clustering.
+kmfs10 <- kmeans(fs,10)
+
+# this output gives 10 groups and top 10 words in them
+print(apply(kmfs10$centers,1,function(c) colnames(fs)[order(-c)[1:10]]))
+```
+
+```{r}
+# the code below takes the dataset "fs" and we want 15 means. So "kmeans" will do this clustering.
+kmfs15 <- kmeans(fs,15)
+
+# this output gives 15 groups and top 10 words in them
+print(apply(kmfs15$centers,1,function(c) colnames(fs)[order(-c)[1:10]]))
+```
+
+```{r}
+# the code below takes the dataset "fs" and we want 20 means. So "kmeans" will do this clustering.
+kmfs20 <- kmeans(fs,20)
+
+# this output gives 20 groups and top 10 words in them
+print(apply(kmfs20$centers,1,function(c) colnames(fs)[order(-c)[1:10]]))
+```
+
+```{r}
+# the code below takes the dataset "fs" and we want 25 means. So "kmeans" will do this clustering.
+kmfs25 <- kmeans(fs,25)
+
+# this output gives 25 groups and top 10 words in them
+print(apply(kmfs25$centers,1,function(c) colnames(fs)[order(-c)[1:10]]))
+```
+
+Question 2
+```{r}
+# Elbow method
+library(factoextra)
+fviz_nbclust(fs, kmeans, method = "wss", k.max = 30)
+#We can choose 24 based on the below plot
+```
+
+```{r}
+# Create a function to deduce AIC / BIC
+kic <- function(fit, rule=c("A","B", "CA")){
+  df <- length(fit$centers) # K*dim
+	n <- sum(fit$size)
+	D <- fit$tot.withinss # deviance
+	rule=match.arg(rule)
+  if(rule=="CA")
+		return(D + 2*df*n/(n-df-1))
+	else if(rule == "A")
+	  return(D + 2*df)
+	else
+		return(D + log(n)*df)
+}
+```
+
+
+```{r}
+# create a vector of clusters from k = 1 to k = 30
+kfit <- lapply(1:30, function(k) kmeans(fs,k))
+```
+
+```{r}
+# Next, we calculate aicc for all different clusters deduced from the k-fit
+kaicc <- sapply(kfit, kic, "CA")
+
+# Now we plot them:
+plot(kaicc, xlab="K", ylab="AICc", bty="n", type="p", lwd=2,  pch = 21, col="red", bg = "red")
+# AICc doesn'tmake sense in this case as the denominator becomes negative
+```
+
+
+```{r}
+# Next, we calculate aic for all different clusters deduced from the k-fit
+kaic <- sapply(kfit, kic, "A")
+
+# Now we plot them:
+plot(kaic, xlab="K", ylab="AIC", bty="n", type="p", lwd=2, pch = 21, col="blue", bg = "blue")
+# Based on AIC, we can choose the value 28 for the number of clusters
+```
+
+#Question 3
+```{r}
+# Add libraries
+library(textir)
+library(maptpx)
+
+
+x <- as.simple_triplet_matrix(congress109Counts)
+```
+
+
+```{r}
+tpcs <- maptpx::topics(x, K=5*(1:5), verb=10)
+
+summary(tpcs, n=10)
+```
+
+
+```{r}
+rownames(tpcs$theta)[order(tpcs$theta[,1], decreasing=TRUE)[1:10]]
+rownames(tpcs$theta)[order(tpcs$theta[,2], decreasing=TRUE)[1:10]]
+```
+# Question 3 - Answer
+# Here the max Bayes factor chooses K=10 clusters (logBF = 77508.93) because this is the largest logBF.
+# Interpretation of the topics:
+# Topic 1 relates mostly to Asian Pacific Americans and African Americans.
+# Topic 2 relates mostly to US Army veterans and their health care.
+# Topic 3 relates to illegal immigration.
+# Topic 4 relates largely to the Iraq's Oil for Food Program.
+# Topic 5 relates to retirement policy and taxes related to retirement.
+# Topic 6 relates to Tongass National Forest timber sales program.
+# Topic 7 relates to a US judicial court and judge confirmations.
+# Topic 8 relates to gun control and gun safety.
+# Topic 9 relates to US trade policy, free trade, and the trade deficit.
+# Topic 10 relates to stem cell research.
+
+# Question 4
+```{r}
+library(glmnet)
+```
+
+```{r}
+# Check first few rows
+head(congress109Ideology)
+```
+```{r}
+# pull out the data for "party" (make it numeric) and repshare, and put them into vectors
+party <- as.numeric(congress109Ideology[,"party"])
+repshare <- congress109Ideology[,"repshare"]
+
+regtpcs.cv <- cv.glmnet(tpcs$omega, party)
+```
+
+
+```{r}
+plot(regtpcs.cv)
+```
+
+
+```{r}
+coef(regtpcs.cv)
+
+rownames(tpcs$theta)[order(tpcs$theta[,6], decreasing=TRUE)[1:10]]
+rownames(tpcs$theta)[order(tpcs$theta[,7], decreasing=TRUE)[1:10]]
+rownames(tpcs$theta)[order(tpcs$theta[,10], decreasing=TRUE)[1:10]]
+```
+Topics 6, 7, and 10 have no coefficients. This indicates these topics do not increase or decrease the chance that a representative's constituents voted for Bush in 2004.  Topic 6 is mixed but mainly about climate and environment; 7 is about the judicial system; 10 is mostly about stem cell research. See the top 10 words in each of these topics below.
+
+```{r}
+regtpcs_repshare.cv <-cv.glmnet(tpcs$omega, repshare)
+plot(regtpcs_repshare.cv)
+     
+coef(regtpcs_repshare.cv)
+```
+Representatives who discussed Topics 1, 2, 8, and 9 had more voters who did NOT vote for Bush in 2004. By contrast, those who spoke about 3 and 5 had a higher percentage of people who did vote for Bush.
+
+```{r}
+rownames(tpcs$theta)[order(tpcs$theta[,1], decreasing=TRUE)[1:10]]
+rownames(tpcs$theta)[order(tpcs$theta[,5], decreasing=TRUE)[1:10]]
+```
+
+
+```{r}
+# pull out the data for "party" (make it numeric) and repshare, and put them into vectors
+x <- 100*congress109Counts/rowSums(congress109Counts)
+
+regwords.cv <- cv.glmnet(x, party)
+```
+
+```{r}
+plot(regwords.cv)
+```
+
+
+```{r}
+regwords_repshare.cv <- cv.glmnet(x, repshare)
+```
+
+```{r}
+plot(regwords_repshare.cv)
+```
