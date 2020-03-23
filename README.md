@@ -18,16 +18,16 @@ around K = 24. These two values are not exactly equal but are very close.
 ## Fit a topic model for the speech counts, using Bayes factors to choose number of topics
 Here the max Bayes factor chooses K=10 clusters (logBF = 77508.93) because this is the largest
 logBF. Here is how we interpret the topics:<br>
-• Topic 1 relates mostly to Asian Pacific Americans and African Americans.
-• Topic 2 relates mostly to US Army veterans and their health care.
-• Topic 3 relates to illegal immigration.
-• Topic 4 relates largely to the Iraq's Oil for Food Program.
-• Topic 5 relates to retirement policy and taxes related to retirement.
-• Topic 6 relates to Tongass National Forest timber sales program.
-• Topic 7 relates to a US judicial court and judge confirmations.
-• Topic 8 relates to gun control and gun safety.
-• Topic 9 relates to US trade policy, free trade, and the trade deficit.
-• Topic 10 relates to stem cell research.
+• Topic 1 relates mostly to Asian Pacific Americans and African Americans.<br>
+• Topic 2 relates mostly to US Army veterans and their health care.<br>
+• Topic 3 relates to illegal immigration.<br>
+• Topic 4 relates largely to the Iraq's Oil for Food Program.<br>
+• Topic 5 relates to retirement policy and taxes related to retirement.<br>
+• Topic 6 relates to Tongass National Forest timber sales program.<br>
+• Topic 7 relates to a US judicial court and judge confirmations.<br>
+• Topic 8 relates to gun control and gun safety.<br>
+• Topic 9 relates to US trade policy, free trade, and the trade deficit.<br>
+• Topic 10 relates to stem cell research.<br>
 
 ## Connect the unsupervised clusters to partisanship. 
 
